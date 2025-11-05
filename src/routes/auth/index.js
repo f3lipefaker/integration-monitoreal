@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../../../server.js';
-import db from '../../functions/db.js';
+import sql from '../../functions/sql.js';
 import tables from '../../utils/tables.js';
 
 const router = Router();
@@ -28,7 +28,7 @@ router.get('/auth', async (req, res) => {
         const { authorization } = req.headers;
         const { user_id } = req.params;
 
-        const userResult = await db.SELECT(tables.cad_users.schema,
+        const userResult = await sql.SELECT(tables.cad_users.schema,
             {
                 [tables.cad_users.columns.id]: user_id,
             })
@@ -50,7 +50,7 @@ router.post('/auth', async (req, res) => {
         const { authorization } = req.headers;
         const { name, role } = req.body;
 
-        await db.INSERT(tables.cad_users.schema,
+        await sql.INSERT(tables.cad_users.schema,
             {
                 [tables.cad_users.columns.name]: name,
                 [tables.cad_users.columns.role]: role,
@@ -73,7 +73,7 @@ router.put('/auth', async (req, res) => {
         const { authorization } = req.headers;
         const { id, name, role } = req.body;
 
-        await db.UPDATE(tables.cad_users.schema,
+        await sql.UPDATE(tables.cad_users.schema,
             {
                 // [tables.news.columns.title]: title,
                 [tables.cad_users.columns.name]: name,
@@ -101,7 +101,7 @@ router.delete('/auth', async (req, res) => {
         const { authorization } = req.headers;
         const { id } = req.body;
 
-        await db.DELETE(tables.cad_users.schema,
+        await sql.DELETE(tables.cad_users.schema,
             {
                 [tables.cad_users.columns.id]: id,
             })
