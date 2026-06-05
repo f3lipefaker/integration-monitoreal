@@ -1,120 +1,78 @@
 import { Router } from 'express';
+import axios from 'axios';
 import { pool } from '../../../server.js';
 import sql from '../../functions/sql.js';
 import tables from '../../utils/tables.js';
 
 const router = Router();
+const MONITOREAL_API = 'http://monitoreal.viptech.com.br/api';
 
-//GET 
-
-router.get('/auth', async (req, res) => {
+// ========================================================
+// FUNÇÃO: Obter Token de Acesso do Monitoreal
+// ========================================================
+async function getMonitorealToken() {
     try {
-        const { authorization } = req.headers;
-
-        const usersSelect = 'SELECT * FROM public.cad_users';
-        const usersSResult = await pool.query(usersSelect);
-
-        return res.status(200).json(usersSResult.rows);
-
+        const response = await axios.post(`${MONITOREAL_API}/token/`, {
+            username: "fbdomingos",
+            password: "@Viptech3348"
+        });
+        
+        // Retorna o token de acesso (access)
+        return response.data.access; 
     } catch (error) {
-        console.error('Erro detectado: ', error, 'Rota: ', req.url);
-        return res.status(400).json({ error: 'Erro ao processar a solicitação' });
+        console.error('Erro ao obter token do Monitoreal:', error.response?.data || error.message);
+        throw new Error('Falha na autenticação com Monitoreal');
+    }
+}
+
+// ========================================================
+// FUNÇÕES / ROTAS: Ativar e Desativar Câmeras dinamicamente
+// ========================================================
+
+// ROTA: Ativar uma câmera específica -> PUT /camera/:id/ative
+router.get('/camera/:id/ative', async (req, res) => {
+    try {
+        const { id } = req.params; // ID da câmera (ex: 45 ou 46)
+        
+        // 1. Busca o token válido atualizado
+        const accessToken = await getMonitorealToken();
+
+        // 2. Faz a requisição PUT para a API do Monitoreal
+        const response = await axios.put(`${MONITOREAL_API}/camera/${id}/`, 
+            { active: true }, 
+            {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            }
+        );
+
+        return res.status(200).json({ success: true, message: `Câmera ${id} ativada com sucesso!`, data: response.data });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: error.message });
     }
 });
 
-
-router.get('/auth', async (req, res) => {
+// ROTA: Desativar uma câmera específica -> PUT /camera/:id/desative
+router.get('/camera/:id/desative', async (req, res) => {
     try {
-        const { authorization } = req.headers;
-        const { user_id } = req.params;
+        const { id } = req.params; // ID da câmera (ex: 45 ou 46)
+        
+        // 1. Busca o token válido atualizado
+        const accessToken = await getMonitorealToken();
 
-        const userResult = await sql.SELECT(tables.cad_users.schema,
+        // 2. Faz a requisição PUT para a API do Monitoreal
+        const response = await axios.put(`${MONITOREAL_API}/camera/${id}/`, 
+            { active: false }, 
             {
-                [tables.cad_users.columns.id]: user_id,
-            })
-            // .then(result => console.log(result))
-            .catch(error => console.error(error));
+                headers: { Authorization: `Bearer ${accessToken}` }
+            }
+        );
 
-        return res.status(200).json(userResult);
-
+        return res.status(200).json({ success: true, message: `Câmera ${id} desativada com sucesso!`, data: response.data });
     } catch (error) {
-        console.error('Erro detectado: ', error, 'Rota: ', req.url);
-        return res.status(400).json({ error: 'Erro ao processar a solicitação' });
+        console.error(error);
+        return res.status(500).json({ success: false, error: error.message });
     }
 });
-
-//POST
-
-router.post('/auth', async (req, res) => {
-    try {
-        const { authorization } = req.headers;
-        const { name, role } = req.body;
-
-        await sql.INSERT(tables.cad_users.schema,
-            {
-                [tables.cad_users.columns.name]: name,
-                [tables.cad_users.columns.role]: role,
-            })
-            // .then(result => console.log(result))
-            .catch(error => console.error(error));
-
-        return res.status(200).json("Criado Usuario");
-
-    } catch (error) {
-        console.error('Erro detectado: ', error, 'Rota: ', req.url);
-        return res.status(400).json({ error: 'Erro ao processar a solicitação' });
-    }
-});
-
-//PUT
-
-router.put('/auth', async (req, res) => {
-    try {
-        const { authorization } = req.headers;
-        const { id, name, role } = req.body;
-
-        await sql.UPDATE(tables.cad_users.schema,
-            {
-                // [tables.news.columns.title]: title,
-                [tables.cad_users.columns.name]: name,
-                // [tables.news.columns.description]: description,
-                [tables.cad_users.columns.role]: role,
-            },
-            {
-                [tables.cad_users.columns.id]: id,
-            })
-            // .then(result => console.log(result))
-            .catch(error => console.error(error));
-
-        return res.status(200).json("Editado Usuario");
-
-    } catch (error) {
-        console.error('Erro detectado: ', error, 'Rota: ', req.url);
-        return res.status(400).json({ error: 'Erro ao processar a solicitação' });
-    }
-});
-
-//DELETE
-
-router.delete('/auth', async (req, res) => {
-    try {
-        const { authorization } = req.headers;
-        const { id } = req.body;
-
-        await sql.DELETE(tables.cad_users.schema,
-            {
-                [tables.cad_users.columns.id]: id,
-            })
-            // .then(result => console.log(result))
-            .catch(error => console.error(error));
-
-        return res.status(200).json("Removido Usuario");
-
-    } catch (error) {
-        console.error('Erro detectado: ', error, 'Rota: ', req.url);
-        return res.status(400).json({ error: 'Erro ao processar a solicitação' });
-    }
-});
-
 
 export default router;

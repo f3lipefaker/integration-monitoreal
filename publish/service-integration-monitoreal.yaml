@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: service-template
+  name: service-integration-monitoreal
   namespace: viptech
 spec:
   selector:
-    app: template
+    app: integration-monitoreal
   ports:
     - protocol: TCP
       port: 4000

@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: template
+  name: integration-monitoreal
   namespace: viptech
   labels:
-    app: template
+    app: integration-monitoreal
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: template
+      app: integration-monitoreal
   template:
     metadata:
       labels:
-        app: template
+        app: integration-monitoreal
     spec:
       containers:
-        - name: template
-          image: juca266/template:latest
+        - name: integration-monitoreal
+          image: juca266/integration-monitoreal:latest
           ports:
             - containerPort: 4000
           env:

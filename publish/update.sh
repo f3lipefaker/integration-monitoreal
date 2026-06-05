@@ -1,4 +1,4 @@
-image="template" 
+image="integration-monitoreal" 
 namespace="viptech"
 
 echo "Removendo imagens anteriores..."
